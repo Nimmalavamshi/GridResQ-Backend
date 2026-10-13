@@ -20,7 +20,6 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
-import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -67,7 +66,6 @@ public class SecurityConfig {
                 new DaoAuthenticationProvider(userDetailsService);
 
         provider.setPasswordEncoder(passwordEncoder);
-
         return provider;
     }
 
@@ -110,7 +108,6 @@ public class SecurityConfig {
                 new UrlBasedCorsConfigurationSource();
 
         source.registerCorsConfiguration("/**", configuration);
-
         return source;
     }
 
@@ -126,34 +123,21 @@ public class SecurityConfig {
 
         csrfRepository.setHeaderName("X-XSRF-TOKEN");
 
-        XorCsrfTokenRequestAttributeHandler xorHandler =
-                new XorCsrfTokenRequestAttributeHandler();
-
-        CsrfTokenRequestAttributeHandler plainHandler =
+        CsrfTokenRequestAttributeHandler csrfHandler =
                 new CsrfTokenRequestAttributeHandler();
 
         http
             .cors(cors -> cors
                 .configurationSource(corsConfigurationSource())
             )
-
             .csrf(csrf -> csrf
                 .csrfTokenRepository(csrfRepository)
-                .csrfTokenRequestHandler((request, response, token) -> {
-                    xorHandler.handle(request, response, token);
-                    request.setAttribute(
-                            "_csrf",
-                            token
-                    );
-                })
+                .csrfTokenRequestHandler(csrfHandler)
             )
-
             .authenticationProvider(authenticationProvider)
-
             .securityContext(context -> context
                 .securityContextRepository(securityContextRepository)
             )
-
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/csrf").permitAll()
