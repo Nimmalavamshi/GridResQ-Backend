@@ -90,7 +90,8 @@ public class SecurityConfig {
                 List.of(
                         "http://localhost:5173",
                         "http://localhost:5174",
-                        "https://grid-res-q-frontend.vercel.app"
+                        "https://grid-res-q-frontend.vercel.app",
+                        "https://grid-res-q-frontend-*.vercel.app"
 
                 )
         );
