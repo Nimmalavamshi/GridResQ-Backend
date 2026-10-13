@@ -1,4 +1,5 @@
-package com.gridresq.backend.auth;
+
+       package com.gridresq.backend.auth;
 
 import java.util.List;
 
@@ -73,6 +74,7 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(
             DaoAuthenticationProvider authenticationProvider) {
+
         return new ProviderManager(authenticationProvider);
     }
 
@@ -85,27 +87,33 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOriginPatterns(List.of(
-                "http://localhost:5173",
-                "http://localhost:5174",
-                "https://grid-res-q-frontend.vercel.app",
+        configuration.setAllowedOrigins(
+                List.of(
+                        "http://localhost:5173",
+                        "http://localhost:5174",
+                         "https://grid-res-q-frontend.vercel.app",
                 "https://grid-res-q-frontend-*.vercel.app"
-        ));
+                )
+        );
 
-        configuration.setAllowedMethods(List.of(
-                "GET",
-                "POST",
-                "PUT",
-                "PATCH",
-                "DELETE",
-                "OPTIONS"
-        ));
+        configuration.setAllowedMethods(
+                List.of(
+                        "GET",
+                        "POST",
+                        "PUT",
+                        "PATCH",
+                        "DELETE",
+                        "OPTIONS"
+                )
+        );
 
-        configuration.setAllowedHeaders(List.of(
-                "Content-Type",
-                "Accept",
-                "X-XSRF-TOKEN"
-        ));
+        configuration.setAllowedHeaders(
+                List.of(
+                        "Content-Type",
+                        "Accept",
+                        "X-XSRF-TOKEN"
+                )
+        );
 
         configuration.setAllowCredentials(true);
 
@@ -124,18 +132,13 @@ public class SecurityConfig {
             SecurityContextRepository securityContextRepository)
             throws Exception {
 
-        CookieCsrfTokenRepository csrfRepository =
+        CookieCsrfTokenRepository csrfTokenRepository =
                 CookieCsrfTokenRepository.withHttpOnlyFalse();
 
-        csrfRepository.setHeaderName("X-XSRF-TOKEN");
-
-        csrfRepository.setCookieCustomizer(cookie -> cookie
-                .sameSite("None")
-                .secure(true)
-        );
-
-        CsrfTokenRequestAttributeHandler csrfHandler =
+        CsrfTokenRequestAttributeHandler csrfRequestHandler =
                 new CsrfTokenRequestAttributeHandler();
+
+        csrfRequestHandler.setCsrfRequestAttributeName(null);
 
         http
             .cors(cors -> cors
@@ -143,8 +146,8 @@ public class SecurityConfig {
             )
 
             .csrf(csrf -> csrf
-                .csrfTokenRepository(csrfRepository)
-                .csrfTokenRequestHandler(csrfHandler)
+                .csrfTokenRepository(csrfTokenRepository)
+                .csrfTokenRequestHandler(csrfRequestHandler)
             )
 
             .authenticationProvider(authenticationProvider)
