@@ -87,14 +87,14 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(
-                List.of(
-                        "http://localhost:5173",
-                        "http://localhost:5174",
-                         "https://grid-res-q-frontend.vercel.app",
-                "https://grid-res-q-frontend-*.vercel.app"
-                )
-        );
+       configuration.setAllowedOriginPatterns(List.of(
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "https://grid-res-q-frontend.vercel.app",
+        "https://grid-res-q-frontend-*.vercel.app",
+        "https://grid-res-q-frontend-*-6688.vercel.app"
+));
+                
 
         configuration.setAllowedMethods(
                 List.of(
