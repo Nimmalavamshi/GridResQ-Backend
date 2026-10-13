@@ -20,6 +20,7 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -73,7 +74,6 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(
             DaoAuthenticationProvider authenticationProvider) {
-
         return new ProviderManager(authenticationProvider);
     }
 
@@ -86,34 +86,23 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(
-                List.of(
-                        "http://localhost:5173",
-                        "http://localhost:5174",
-                        "https://grid-res-q-frontend.vercel.app",
-                        "https://grid-res-q-frontend-*.vercel.app"
+        configuration.setAllowedOriginPatterns(List.of(
+                "http://localhost:5173",
+                "http://localhost:5174",
+                "https://grid-res-q-frontend.vercel.app",
+                "https://grid-res-q-frontend-*.vercel.app"
+        ));
 
-                )
-        );
+        configuration.setAllowedMethods(List.of(
+                "GET", "POST", "PUT", "PATCH",
+                "DELETE", "OPTIONS"
+        ));
 
-        configuration.setAllowedMethods(
-                List.of(
-                        "GET",
-                        "POST",
-                        "PUT",
-                        "PATCH",
-                        "DELETE",
-                        "OPTIONS"
-                )
-        );
-
-        configuration.setAllowedHeaders(
-                List.of(
-                        "Content-Type",
-                        "Accept",
-                        "X-XSRF-TOKEN"
-                )
-        );
+        configuration.setAllowedHeaders(List.of(
+                "Content-Type",
+                "Accept",
+                "X-XSRF-TOKEN"
+        ));
 
         configuration.setAllowCredentials(true);
 
@@ -132,13 +121,16 @@ public class SecurityConfig {
             SecurityContextRepository securityContextRepository)
             throws Exception {
 
-        CookieCsrfTokenRepository csrfTokenRepository =
+        CookieCsrfTokenRepository csrfRepository =
                 CookieCsrfTokenRepository.withHttpOnlyFalse();
 
-        CsrfTokenRequestAttributeHandler csrfRequestHandler =
-                new CsrfTokenRequestAttributeHandler();
+        csrfRepository.setHeaderName("X-XSRF-TOKEN");
 
-        csrfRequestHandler.setCsrfRequestAttributeName(null);
+        XorCsrfTokenRequestAttributeHandler xorHandler =
+                new XorCsrfTokenRequestAttributeHandler();
+
+        CsrfTokenRequestAttributeHandler plainHandler =
+                new CsrfTokenRequestAttributeHandler();
 
         http
             .cors(cors -> cors
@@ -146,8 +138,14 @@ public class SecurityConfig {
             )
 
             .csrf(csrf -> csrf
-                .csrfTokenRepository(csrfTokenRepository)
-                .csrfTokenRequestHandler(csrfRequestHandler)
+                .csrfTokenRepository(csrfRepository)
+                .csrfTokenRequestHandler((request, response, token) -> {
+                    xorHandler.handle(request, response, token);
+                    request.setAttribute(
+                            "_csrf",
+                            token
+                    );
+                })
             )
 
             .authenticationProvider(authenticationProvider)
