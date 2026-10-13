@@ -66,6 +66,7 @@ public class SecurityConfig {
                 new DaoAuthenticationProvider(userDetailsService);
 
         provider.setPasswordEncoder(passwordEncoder);
+
         return provider;
     }
 
@@ -92,8 +93,12 @@ public class SecurityConfig {
         ));
 
         configuration.setAllowedMethods(List.of(
-                "GET", "POST", "PUT", "PATCH",
-                "DELETE", "OPTIONS"
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE",
+                "OPTIONS"
         ));
 
         configuration.setAllowedHeaders(List.of(
@@ -108,6 +113,7 @@ public class SecurityConfig {
                 new UrlBasedCorsConfigurationSource();
 
         source.registerCorsConfiguration("/**", configuration);
+
         return source;
     }
 
@@ -123,6 +129,11 @@ public class SecurityConfig {
 
         csrfRepository.setHeaderName("X-XSRF-TOKEN");
 
+        csrfRepository.setCookieCustomizer(cookie -> cookie
+                .sameSite("None")
+                .secure(true)
+        );
+
         CsrfTokenRequestAttributeHandler csrfHandler =
                 new CsrfTokenRequestAttributeHandler();
 
@@ -130,14 +141,18 @@ public class SecurityConfig {
             .cors(cors -> cors
                 .configurationSource(corsConfigurationSource())
             )
+
             .csrf(csrf -> csrf
                 .csrfTokenRepository(csrfRepository)
                 .csrfTokenRequestHandler(csrfHandler)
             )
+
             .authenticationProvider(authenticationProvider)
+
             .securityContext(context -> context
                 .securityContextRepository(securityContextRepository)
             )
+
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/csrf").permitAll()
