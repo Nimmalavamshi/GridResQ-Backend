@@ -138,7 +138,7 @@ public class SecurityConfig {
         CsrfTokenRequestAttributeHandler csrfRequestHandler =
                 new CsrfTokenRequestAttributeHandler();
 
-        csrfRequestHandler.setCsrfRequestAttributeName(null);
+        csrfRequestHandler.setCsrfRequestAttributeName("_csrf");
 
         http
             .cors(cors -> cors
